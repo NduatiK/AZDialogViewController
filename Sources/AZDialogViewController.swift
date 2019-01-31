@@ -13,13 +13,17 @@ public typealias ActionHandler = ((AZDialogViewController)->(Void))
 @objc
 open class AZDialogViewController: UIViewController{
 
+    public var imageView: UIImageView? {
+        return internalImageView
+    }
+
     //MARK: - Private Properties
     
     /// The container that holds the image view.
     fileprivate var imageViewHolder: UIView!
     
     /// The image view.
-    fileprivate var imageView: UIImageView!
+    fileprivate var internalImageView: UIImageView!
     
     /// The Title Label.
     fileprivate var titleLabel: UILabel!
@@ -386,28 +390,28 @@ open class AZDialogViewController: UIViewController{
     @objc
     open var image: UIImage?{
         get{
-            return imageView?.image
+            return internalImageView?.image
         }set{
             if let image = newValue{
                 //not nil
-                if let _ = imageView.image {
+                if let _ = internalImageView.image {
                     // old value not nil
                     //new value not nil
                     //only update the image
-                    imageView?.image = image
+                    internalImageView?.image = image
                 }else {
                     //old nil
                     //new value not nil
                     //update image and constraints
-                    imageView?.image = image
+                    internalImageView?.image = image
                     updateConstraints(showImage: true)
                 }
             }else{
                 //nil
-                if let _ = imageView.image {
+                if let _ = internalImageView.image {
                     //old value not nil
                     updateConstraints(showImage: false){ [weak self] in
-                        self?.imageView.image = nil
+                        self?.internalImageView.image = nil
                     }
                 }
             }
@@ -615,7 +619,7 @@ open class AZDialogViewController: UIViewController{
         generalStackView = UIStackView()
         imageViewHolder = UIView()
         imageViewHolder.backgroundColor = .white
-        imageView = UIImageView()
+        internalImageView = UIImageView()
         buttonsStackView = UIStackView()
         titleLabel = UILabel()
         messageLabel = UILabel()
@@ -625,13 +629,13 @@ open class AZDialogViewController: UIViewController{
         rightToolItem = UIButton(type: .system)
         
         if spacing == -1 {spacing = deviceHeight * 0.012}
-        let showImage = imageHandler?(imageView) ?? false
+        let showImage = imageHandler?(internalImageView) ?? false
         
         // Disable translate auto resizing mask into constraints
         baseView.translatesAutoresizingMaskIntoConstraints = false
         generalStackView.translatesAutoresizingMaskIntoConstraints = false
         imageViewHolder.translatesAutoresizingMaskIntoConstraints = false
-        imageView.translatesAutoresizingMaskIntoConstraints = false
+        internalImageView.translatesAutoresizingMaskIntoConstraints = false
         cancelButton.translatesAutoresizingMaskIntoConstraints = false
         leftToolItem.translatesAutoresizingMaskIntoConstraints = false
         rightToolItem.translatesAutoresizingMaskIntoConstraints = false
@@ -648,7 +652,7 @@ open class AZDialogViewController: UIViewController{
         generalStackView.addArrangedSubview(container)
         generalStackView.addArrangedSubview(buttonsStackView)
         
-        imageViewHolder.addSubview(imageView)
+        imageViewHolder.addSubview(internalImageView)
         
         
         //setup image
@@ -731,7 +735,8 @@ open class AZDialogViewController: UIViewController{
     }
     
     /// Returns a newly initialized view controller with the nib file in the specified bundle.
-    override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
+    /// Public to allow subclassing -> Designated initializer...
+    public override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
         super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
         setup()
     }
@@ -881,7 +886,7 @@ open class AZDialogViewController: UIViewController{
                 if velocity.y > 0{
                     //dismiss downward
                     if dismissDirection == .bottom || dismissDirection == .both {
-                        finalPoint.y = view.frame.maxY + baseView.bounds.midY + (imageView?.frame.height ?? 0.0)
+                        finalPoint.y = view.frame.maxY + baseView.bounds.midY + (internalImageView?.frame.height ?? 0.0)
                         dismissInDirection(finalPoint)
                     }else{
                         returnToCenter(finalPoint,true)
@@ -968,13 +973,13 @@ open class AZDialogViewController: UIViewController{
         imageViewHolderHeightConstraint = imageViewHolder.heightAnchor.constraint(equalToConstant: imageHolderSize)
         imageViewHolderHeightConstraint.isActive = true
 
-        imageView.layer.cornerRadius = (imageHolderSize - 2 * 5) / 2
-        imageView.layer.masksToBounds = true
+        internalImageView.layer.cornerRadius = (imageHolderSize - 2 * 5) / 2
+        internalImageView.layer.masksToBounds = true
         
-        imageView.heightAnchor.constraint(equalTo: imageView.widthAnchor, multiplier: 1.0).isActive = true
-        imageView.widthAnchor.constraint(equalTo: imageViewHolder.widthAnchor, multiplier: 0.90).isActive = true
-        imageView.centerXAnchor.constraint(equalTo: imageViewHolder.centerXAnchor).isActive = true
-        imageView.centerYAnchor.constraint(equalTo: imageViewHolder.centerYAnchor).isActive = true
+        internalImageView.heightAnchor.constraint(equalTo: internalImageView.widthAnchor, multiplier: 1.0).isActive = true
+        internalImageView.widthAnchor.constraint(equalTo: imageViewHolder.widthAnchor, multiplier: 0.90).isActive = true
+        internalImageView.centerXAnchor.constraint(equalTo: imageViewHolder.centerXAnchor).isActive = true
+        internalImageView.centerYAnchor.constraint(equalTo: imageViewHolder.centerYAnchor).isActive = true
         
         return imageMultiplier
     }
@@ -1203,13 +1208,13 @@ open class AZDialogViewController: UIViewController{
         imageViewHolder.layer.cornerRadius = imageHolderSize / 2
         imageViewHolder.layer.masksToBounds = true
         
-        imageView.layer.cornerRadius = (imageHolderSize - 2 * 5) / 2
-        imageView.layer.masksToBounds = true
+        internalImageView.layer.cornerRadius = (imageHolderSize - 2 * 5) / 2
+        internalImageView.layer.masksToBounds = true
         
         //setup transform
         let transform = showImage ? CGAffineTransform(scaleX: 0, y: 0) : .identity
         imageViewHolder.transform = transform
-        imageView.transform = transform
+        internalImageView.transform = transform
         
         //animate changes
         animateStackView(completionBlock: {
@@ -1219,7 +1224,7 @@ open class AZDialogViewController: UIViewController{
             self?.imageViewHolder.alpha = showImage ? 1.0 : 0.0
             let inverseTransform = showImage ? .identity : CGAffineTransform(scaleX: 0.1, y: 0.1)
             self?.imageViewHolder.transform = inverseTransform
-            self?.imageView.transform = inverseTransform
+            self?.internalImageView.transform = inverseTransform
         }
     }
     
